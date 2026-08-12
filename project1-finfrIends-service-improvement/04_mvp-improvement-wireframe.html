@@ -1,0 +1,963 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>핀프렌즈 — 와이어프레임 (아이 4탭 × 부모 4탭)</title>
+</head>
+<body>
+<style>
+  :root{
+    --bg:#fbfcfb; --surface:#ffffff; --ink:#16181a; --muted:#767c82;
+    --line:#e2e5e3; --fill:#f1f3f2; --fill2:#e6e9e7;
+    --child:#2f9e44; --child-soft:#edf8f0; --child-line:#b7e2c3;
+    --parent:#3b5bdb; --parent-soft:#eceffc; --parent-line:#c2ccf2;
+    --gold:#b8820c; --gold-soft:#fdf6e3; --gold-line:#eed494;
+    --deep:#1c3d26; --deep-ink:#ffffff;
+    --neg:#c0392b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#14171a; --surface:#1c2024; --ink:#e8eaec; --muted:#8d949b;
+      --line:#333940; --fill:#242a2f; --fill2:#2e353b;
+      --child:#5fcf7a; --child-soft:#1b3324; --child-line:#2f5c3d;
+      --parent:#8aa2f5; --parent-soft:#212a45; --parent-line:#3a4676;
+      --gold:#e8b445; --gold-soft:#382d13; --gold-line:#5f4a1c;
+      --deep:#1d4029; --deep-ink:#eaf6ed;
+      --neg:#e07b6d;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14171a; --surface:#1c2024; --ink:#e8eaec; --muted:#8d949b;
+    --line:#333940; --fill:#242a2f; --fill2:#2e353b;
+    --child:#5fcf7a; --child-soft:#1b3324; --child-line:#2f5c3d;
+    --parent:#8aa2f5; --parent-soft:#212a45; --parent-line:#3a4676;
+    --gold:#e8b445; --gold-soft:#382d13; --gold-line:#5f4a1c;
+    --deep:#1d4029; --deep-ink:#eaf6ed;
+    --neg:#e07b6d;
+  }
+  :root[data-theme="light"]{
+    --bg:#fbfcfb; --surface:#ffffff; --ink:#16181a; --muted:#767c82;
+    --line:#e2e5e3; --fill:#f1f3f2; --fill2:#e6e9e7;
+    --child:#2f9e44; --child-soft:#edf8f0; --child-line:#b7e2c3;
+    --parent:#3b5bdb; --parent-soft:#eceffc; --parent-line:#c2ccf2;
+    --gold:#b8820c; --gold-soft:#fdf6e3; --gold-line:#eed494;
+    --deep:#1c3d26; --deep-ink:#ffffff;
+    --neg:#c0392b;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
+    line-height:1.55; margin:0; padding:52px 28px 40px;
+    -webkit-font-smoothing:antialiased;
+  }
+  main{max-width:1200px; margin:0 auto}
+
+  /* ============ 타이틀 ============ */
+  .eyebrow{font-size:12.5px; font-weight:800; letter-spacing:.16em; color:var(--child); margin:0 0 12px}
+  h1{font-size:38px; line-height:1.28; margin:0 0 18px; letter-spacing:-.02em; font-weight:800; text-wrap:balance}
+  h1 .hl{color:var(--child)}
+  .lede{max-width:760px; font-size:15px; color:var(--muted); margin:0}
+  .lede b{color:var(--ink); font-weight:700}
+
+  /* ============ 공통 섹션 ============ */
+  .block{margin-top:56px}
+  .block-head{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:18px}
+  .step{font-size:11px; font-weight:800; letter-spacing:.1em; color:var(--muted);
+    border:1px solid var(--line); border-radius:99px; padding:3px 10px; flex:none}
+  h2{font-size:22px; margin:0; font-weight:800; letter-spacing:-.01em}
+  .block-head .sub{font-size:13.5px; color:var(--muted); margin:0}
+
+  /* ============ 읽는 법 ============ */
+  .legend{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:10px; margin-top:22px}
+  .legend div{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:12px 14px; font-size:12.5px; color:var(--muted)}
+  .legend b{display:block; color:var(--ink); font-size:13px; margin-bottom:3px}
+  .sw{display:inline-block; width:9px; height:9px; border-radius:3px; margin-right:5px; vertical-align:baseline}
+  .sw.c{background:var(--child)} .sw.p{background:var(--parent)} .sw.g{background:var(--gold)}
+
+  /* ============ 루프 다이어그램 ============ */
+  .loop{background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:20px 22px; margin-bottom:14px}
+  .loop-head{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px; font-size:13px; color:var(--muted)}
+  .loop-tag{font-size:12px; font-weight:800; padding:4px 12px; border-radius:99px; flex:none}
+  .loop-tag.star{background:var(--child-soft); color:var(--child)}
+  .loop-tag.pig{background:var(--parent-soft); color:var(--parent)}
+  .track{display:flex; align-items:stretch; gap:10px; flex-wrap:wrap}
+  .node{border-radius:12px; padding:12px 16px; min-width:132px; border:1.5px solid var(--line); background:var(--fill)}
+  .node b{display:block; font-size:14px; font-weight:800; line-height:1.35}
+  .node small{display:block; font-size:11px; color:var(--muted); margin-top:3px; line-height:1.45}
+  .node .ref{display:inline-block; margin-top:7px; font-size:10px; font-weight:800; letter-spacing:.04em;
+    color:var(--muted); background:var(--surface); border:1px solid var(--line); border-radius:5px; padding:1px 6px}
+  .node.c{background:var(--child-soft); border-color:var(--child-line)}
+  .node.c b{color:var(--child)}
+  .node.p{background:var(--parent-soft); border-color:var(--parent-line)}
+  .node.p b{color:var(--parent)}
+  .node.g{background:var(--gold-soft); border-color:var(--gold-line)}
+  .node.g b{color:var(--gold)}
+  .arw{display:flex; align-items:center; color:var(--muted); font-size:16px; flex:none}
+  .back{display:flex; align-items:center; color:var(--muted); font-size:17px; padding-left:2px}
+
+  /* ============ 재화 표 ============ */
+  .tbl{width:100%; border-collapse:separate; border-spacing:0; margin-top:20px; font-size:13px;
+    border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--surface)}
+  .tbl th{background:var(--deep); color:var(--deep-ink); text-align:left; font-size:12px; font-weight:700;
+    letter-spacing:.04em; padding:11px 16px; white-space:nowrap}
+  .tbl td{padding:13px 16px; border-top:1px solid var(--line); vertical-align:middle}
+  .tbl tbody tr:first-child td{border-top:none}
+  .tbl .who{font-weight:800; white-space:nowrap}
+  .tbl .no{color:var(--child); font-weight:800}
+  .tblwrap{overflow-x:auto}
+
+  /* ============ IA 요약 2단 ============ */
+  .ia{display:grid; grid-template-columns:1fr 1fr; gap:20px}
+  .ia-card{border-radius:16px; padding:20px 22px 8px}
+  .ia-card.c{background:var(--child-soft); border:1px solid var(--child-line)}
+  .ia-card.p{background:var(--parent-soft); border:1px solid var(--parent-line)}
+  .ia-tag{display:inline-block; font-size:12.5px; font-weight:800; padding:4px 13px; border-radius:99px;
+    background:var(--surface); margin-bottom:6px}
+  .ia-card.c .ia-tag{color:var(--child)}
+  .ia-card.p .ia-tag{color:var(--parent)}
+  .ia-row{display:grid; grid-template-columns:118px 1fr auto; gap:12px; align-items:baseline;
+    padding:13px 0; border-bottom:1px solid rgba(128,128,128,.18)}
+  .ia-row:last-child{border-bottom:none}
+  .ia-row .t{font-size:13.5px; font-weight:800}
+  .ia-card.c .ia-row .t{color:var(--child)}
+  .ia-card.p .ia-row .t{color:var(--parent)}
+  .ia-row .d{font-size:13px; color:var(--ink)}
+  .ia-row .d em{font-style:normal; font-weight:700}
+  .ia-row .n{font-size:10.5px; font-weight:800; letter-spacing:.04em; color:var(--muted);
+    background:var(--surface); border-radius:5px; padding:2px 7px; white-space:nowrap}
+
+  /* ============ 화면 그룹 ============ */
+  .app{margin-top:60px}
+  .app-head{display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    padding-bottom:14px; border-bottom:2px solid var(--line); margin-bottom:8px}
+  .app-tag{font-size:12px; font-weight:800; letter-spacing:.06em; padding:5px 14px; border-radius:99px}
+  .p-app .app-tag{background:var(--parent-soft); color:var(--parent)}
+  .c-app .app-tag{background:var(--child-soft); color:var(--child)}
+  .app-head h2{font-size:21px}
+  .app-head .val{font-size:13px; color:var(--muted); margin:0; width:100%}
+  .app-head .val b{color:var(--ink)}
+
+  .group{padding:26px 0; border-bottom:1px dashed var(--line)}
+  .group:last-child{border-bottom:none}
+  .ghead{display:flex; align-items:flex-start; gap:13px; margin-bottom:16px; flex-wrap:wrap}
+  .gnum{width:26px; height:26px; border-radius:8px; flex:none; display:flex; align-items:center; justify-content:center;
+    font-size:13px; font-weight:800; color:#fff}
+  .p-app .gnum{background:var(--parent)}
+  .c-app .gnum{background:var(--child)}
+  .gtxt{flex:1; min-width:260px}
+  .gtxt h3{margin:0 0 3px; font-size:16.5px; font-weight:800; display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+  .gtxt .role{margin:0; font-size:13px; color:var(--muted)}
+  .gflow{margin:7px 0 0; font-size:12px; color:var(--muted); display:flex; gap:6px; flex-wrap:wrap; align-items:center}
+  .gflow code{font-family:inherit; font-weight:800; font-size:11.5px; letter-spacing:.03em;
+    border:1px solid var(--line); border-radius:5px; padding:1px 6px; background:var(--surface)}
+  .p-app .gflow code{color:var(--parent)}
+  .c-app .gflow code{color:var(--child)}
+  .badge{font-size:10.5px; font-weight:800; padding:3px 9px; border-radius:99px; letter-spacing:.02em}
+  .badge.star{background:var(--child-soft); color:var(--child)}
+  .badge.pig{background:var(--gold-soft); color:var(--gold)}
+
+  .row{display:flex; flex-wrap:wrap; gap:24px; align-items:flex-start}
+
+  /* ============ 폰 목업 ============ */
+  figure{margin:0; width:262px}
+  .phone{width:262px; height:552px; background:var(--surface);
+    border:2px solid var(--line); border-radius:22px; display:flex; flex-direction:column; overflow:hidden}
+
+  figcaption{margin-top:12px; color:var(--muted)}
+  figcaption .name{display:flex; align-items:baseline; gap:6px; color:var(--ink); font-size:14px; font-weight:800; margin-bottom:6px}
+  figcaption .name .id{font-size:11px; font-weight:800; letter-spacing:.04em; color:#fff; border-radius:5px; padding:2px 6px; flex:none}
+  .p-app figcaption .id{background:var(--parent)}
+  .c-app figcaption .id{background:var(--child)}
+  figcaption .name .sub{font-size:11px; font-weight:600; color:var(--muted)}
+  figcaption .why{margin:0 0 8px; color:var(--ink); font-size:12.5px; line-height:1.55}
+  figcaption ul{margin:0; padding:0; list-style:none}
+  figcaption li{position:relative; padding-left:11px; font-size:11.5px; line-height:1.55; margin-bottom:2px}
+  figcaption li::before{content:""; position:absolute; left:2px; top:.62em; width:3px; height:3px; border-radius:50%; background:var(--muted)}
+  figcaption .next{margin:9px 0 0; padding-top:8px; border-top:1px dashed var(--line); font-size:11.5px; line-height:1.5; font-weight:600}
+  .p-app figcaption .next{color:var(--parent)}
+  .c-app figcaption .next{color:var(--child)}
+
+  .statusbar{height:20px; border-bottom:1px dashed var(--line); flex:none;
+    display:flex; align-items:center; justify-content:space-between; padding:0 12px;
+    font-size:8px; color:var(--muted); letter-spacing:.05em}
+  .appbar{flex:none; padding:10px 14px; display:flex; align-items:center; justify-content:space-between;
+    font-size:13px; font-weight:700; border-bottom:1px solid var(--line)}
+  .appbar .bk{font-weight:400; color:var(--muted); font-size:12px}
+  .screen{flex:1; padding:12px; display:flex; flex-direction:column; gap:10px; overflow:hidden; font-size:11px}
+
+  .tabbar{flex:none; height:46px; border-top:1px solid var(--line); display:grid; grid-template-columns:repeat(4,1fr)}
+  .tabbar span{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+    font-size:8.5px; color:var(--muted)}
+  .tabbar span::before{content:""; width:14px; height:14px; border-radius:4px; background:var(--fill2)}
+  .p-app .tabbar .on{color:var(--parent); font-weight:700}
+  .p-app .tabbar .on::before{background:var(--parent)}
+  .c-app .tabbar .on{color:var(--child); font-weight:700}
+  .c-app .tabbar .on::before{background:var(--child)}
+
+  /* ---- wireframe atoms ---- */
+  .box{background:var(--fill); border-radius:8px; padding:9px 10px}
+  .box .lbl{font-size:9px; color:var(--muted); margin-bottom:3px}
+  .box .val{font-size:15px; font-weight:800}
+  .ghost{border:1.5px dashed var(--line); border-radius:8px; background:transparent;
+    display:flex; align-items:center; justify-content:center; color:var(--muted); text-align:center; padding:6px}
+  .btn{border-radius:8px; padding:9px 0; text-align:center; font-weight:700; font-size:11.5px; flex:none}
+  .p-app .btn.pri{background:var(--parent); color:#fff}
+  .c-app .btn.pri{background:var(--child); color:#fff}
+  .btn.line{border:1.5px solid var(--line); color:var(--muted)}
+  .split{display:flex; gap:8px}
+  .split>*{flex:1}
+  .li{display:flex; align-items:center; gap:8px; padding:7px 9px; border:1px solid var(--line); border-radius:8px}
+  .li .ic{width:22px; height:22px; border-radius:6px; background:var(--fill2); flex:none}
+  .li .tx{flex:1; min-width:0}
+  .li .tx small{display:block; color:var(--muted); font-size:9px}
+  .li .amt{font-weight:700; font-size:11px; white-space:nowrap}
+  .neg{color:var(--neg)} .won{color:var(--gold)} .star{color:var(--gold); font-weight:800}
+  .sect-lbl{font-size:10px; font-weight:700; color:var(--muted); letter-spacing:.06em; margin:2px 0 -4px}
+  .bar{height:8px; border-radius:99px; background:var(--fill2); overflow:hidden; margin-top:4px}
+  .bar i{display:block; height:100%; border-radius:99px}
+  .p-app .bar i{background:var(--parent)}
+  .c-app .bar i{background:var(--child)}
+  .cal{display:grid; grid-template-columns:repeat(7,1fr); gap:3px}
+  .cal b{font-size:8px; color:var(--muted); text-align:center; font-weight:400}
+  .cal s{text-decoration:none; aspect-ratio:1; border-radius:5px; background:var(--fill);
+    display:flex; align-items:center; justify-content:center; font-size:8px; color:var(--muted)}
+  .c-app .cal s.hit{background:var(--child); color:#fff}
+  .chip{font-size:9px; padding:2px 8px; border-radius:99px; background:var(--fill2); color:var(--muted); flex:none}
+  .p-app .chip.ok{background:var(--parent-soft); color:var(--parent)}
+  .c-app .chip.ok{background:var(--child-soft); color:var(--child)}
+  .chip.gold{background:var(--gold-soft); color:var(--gold)}
+  .quiz-opt{border:1.5px solid var(--line); border-radius:8px; padding:8px 10px}
+  .c-app .quiz-opt.sel{border-color:var(--child); font-weight:700}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+  .cloth{border:1px solid var(--line); border-radius:8px; padding:8px; text-align:center}
+  .cloth .thumb{height:44px; border-radius:6px; background:var(--fill); margin-bottom:5px;
+    display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:14px}
+  .cloth small{color:var(--muted); font-size:9px; display:block}
+  .avatar-stage{height:150px; border-radius:12px; background:var(--fill);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; color:var(--muted)}
+  .avatar-stage .body{width:64px; height:88px; border-radius:32px 32px 12px 12px; background:var(--fill2);
+    border:1.5px dashed var(--line)}
+  .tree-stage{height:120px; border-radius:12px; background:var(--fill);
+    display:flex; align-items:flex-end; justify-content:center; padding-bottom:8px}
+  .tree{width:0; height:0; border-left:26px solid transparent; border-right:26px solid transparent;
+    border-bottom:64px solid var(--fill2)}
+  .photo{height:120px; border-radius:10px; border:1.5px dashed var(--line);
+    display:flex; align-items:center; justify-content:center; color:var(--muted)}
+
+  /* ============ 마무리 ============ */
+  .closing{margin-top:64px; border-top:2px solid var(--line); padding-top:24px;
+    display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap; align-items:flex-end}
+  .closing .rule{font-size:15px; font-weight:800; margin:0}
+  .closing .rule span{color:var(--child)}
+  .closing .meta{font-size:12.5px; color:var(--muted); margin:5px 0 0}
+
+  @media (max-width:900px){
+    .ia{grid-template-columns:1fr}
+    h1{font-size:30px}
+  }
+  @media (max-width:640px){ .row{justify-content:center} }
+</style>
+
+<main>
+
+<!-- ===================== 표지 ===================== -->
+<header>
+  <p class="eyebrow">WIREFRAME · 화면 흐름 (IA)</p>
+  <h1>아이 4탭 × 부모 4탭 — <span class="hl">각자의 역할에 맞는 화면</span></h1>
+  <p class="lede">핀프렌즈는 <b>두 개의 재화</b>로 돌아갑니다. 아이는 학습해서 <b>별⭐</b>을 모아 아바타를 키우고, 미션을 수행해서 <b>저금통🐷</b>에 실제 용돈을 담습니다. 이 문서는 그 두 루프가 어떤 화면을 거쳐 도는지를 순서대로 보여줍니다.</p>
+
+  <div class="legend">
+    <div><b><span class="sw c"></span>초록 = 아이 앱</b>학습·성장에 관한 모든 것</div>
+    <div><b><span class="sw p"></span>파랑 = 부모 앱</b>확인·승인·관리에 관한 모든 것</div>
+    <div><b><span class="sw g"></span>노랑 = 재화</b>별⭐ · 저금통🐷 (돈이 걸린 것)</div>
+    <div><b>화면 읽는 법</b>회색 상자 = 실데이터 · 점선 = 이미지/미디어 · <code>C1</code>은 아이, <code>P1</code>은 부모 화면 번호</div>
+  </div>
+</header>
+
+<!-- ===================== ① 두 개의 루프 ===================== -->
+<section class="block">
+  <div class="block-head">
+    <span class="step">STEP 1</span>
+    <h2>이 앱은 두 바퀴로 돈다</h2>
+    <p class="sub">각 단계가 어느 화면인지 번호로 표시했습니다.</p>
+  </div>
+
+  <div class="loop">
+    <div class="loop-head"><span class="loop-tag star">⭐ 학습 루프</span> 아이 혼자 완결 — 보상이 <b>사라지지 않고 캐릭터에 남는다</b></div>
+    <div class="track">
+      <div class="node c"><b>학습</b><small>4단계 커리큘럼<br>벌기·쓰기·모으기·불리기</small><span class="ref">C3 · C4</span></div>
+      <span class="arw">→</span>
+      <div class="node c"><b>퀴즈 + 해설</b><small>정답 확인 · 해설 열람</small><span class="ref">C5</span></div>
+      <span class="arw">→</span>
+      <div class="node g"><b>별 ⭐ 획득</b><small>비현금 성장 재화</small><span class="ref">C1</span></div>
+      <span class="arw">→</span>
+      <div class="node c"><b>아바타 성장</b><small>옷장 잠금해제 · 진화</small><span class="ref">C1 · C2</span></div>
+      <span class="back">↺</span>
+    </div>
+  </div>
+
+  <div class="loop">
+    <div class="loop-head"><span class="loop-tag pig">🐷 미션 루프</span> 부모가 시작하고 부모가 닫는다 — <b>돈은 수행의 결과로만 들어온다</b></div>
+    <div class="track">
+      <div class="node p"><b>부모가 미션 등록</b><small>장보기·숙제 등 + 금액</small><span class="ref">P5</span></div>
+      <span class="arw">→</span>
+      <div class="node c"><b>아이 수행 + 인증 사진</b><small>미션 선택 → 사진 제출</small><span class="ref">C8 · C9</span></div>
+      <span class="arw">→</span>
+      <div class="node p"><b>부모 승인</b><small>사진 확인 → 승인/거절</small><span class="ref">P4</span></div>
+      <span class="arw">→</span>
+      <div class="node g"><b>저금통 🐷 용돈</b><small>실제 현금 · 부모 관리</small><span class="ref">C7 · P1</span></div>
+    </div>
+  </div>
+
+  <div class="tblwrap">
+    <table class="tbl">
+      <thead>
+        <tr><th>재화</th><th>성격</th><th>버는 법</th><th>쓰는 곳</th><th>현금 전환</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="who">⭐ 별</td>
+          <td>게임 내 성장 재화 (비현금)</td>
+          <td>학습 · 퀴즈 · 출석</td>
+          <td>아바타 육성 · 옷장</td>
+          <td class="no">불가 (폐쇄형)</td>
+        </tr>
+        <tr>
+          <td class="who">🐷 저금통</td>
+          <td>현금성 보상 (부모 충전)</td>
+          <td>미션 · 퀘스트 달성</td>
+          <td>실제 용돈 · 저축</td>
+          <td>가능 (부모 관리)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===================== ② 4탭 구조 ===================== -->
+<section class="block">
+  <div class="block-head">
+    <span class="step">STEP 2</span>
+    <h2>그래서 화면은 이렇게 나뉜다</h2>
+    <p class="sub">아이는 성장을 보고, 부모는 학습을 봅니다.</p>
+  </div>
+
+  <div class="ia">
+    <div class="ia-card c">
+      <span class="ia-tag">🧒 아이 앱</span>
+      <div class="ia-row"><span class="t">1. 홈</span><span class="d">나를 닮은 캐릭터 · 보유 별 · 옷장(잠금/해제) · 랜딩 시 자동 출석</span><span class="n">C1 C2</span></div>
+      <div class="ia-row"><span class="t">2. 별모으기</span><span class="d">커리큘럼(벌기·쓰기·모으기·불리기) → 학습 → 퀴즈+해설 → <em>별 획득</em></span><span class="n">C3–C6</span></div>
+      <div class="ia-row"><span class="t">3. 내통장</span><span class="d">잔금 · 주간 지출/저축 내역 · 주간 퀘스트 달성률</span><span class="n">C7</span></div>
+      <div class="ia-row"><span class="t">4. 미션</span><span class="d">미션 리스트 · 성공 인증 사진 제출 · 달력형 성공 금액</span><span class="n">C8 C9</span></div>
+    </div>
+
+    <div class="ia-card p">
+      <span class="ia-tag">👨‍👩‍👧 부모 앱</span>
+      <div class="ia-row"><span class="t">1. 아이통장</span><span class="d">용돈 보내기 · 아이 잔금/지출/저축 · 퀘스트 달성률</span><span class="n">P1</span></div>
+      <div class="ia-row"><span class="t">2. 학습 현황</span><span class="d"><em>나무가 자라는 UI</em> · 진도+정답률 · 아이의 답안 · 출석률</span><span class="n">P2</span></div>
+      <div class="ia-row"><span class="t">3. 미션 관리</span><span class="d">미션 등록·금액 설정 · 인증 사진 확인 → 승인/거절</span><span class="n">P3–P5</span></div>
+      <div class="ia-row"><span class="t">4. 마이페이지</span><span class="d">프로필 · 계좌 · 가족 구성원 · 설정 · 고객센터</span><span class="n">P6</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ③ 화면 상세 ===================== -->
+<section class="block">
+  <div class="block-head">
+    <span class="step">STEP 3</span>
+    <h2>화면별 상세</h2>
+    <p class="sub">각 화면 설명은 <b>목적 → 구성 요소 → 연결</b> 순서로 고정되어 있습니다.</p>
+  </div>
+</section>
+
+<!-- ===================== 아이 앱 ===================== -->
+<section class="app c-app">
+  <div class="app-head">
+    <span class="app-tag">🧒 아이 앱</span>
+    <h2>4탭 + 서브 5화면</h2>
+    <p class="val">가치: <b>“금융 활동 목표 달성으로 느끼는 성취감”</b> — 보상이 쓰면 사라지는 용돈이 아니라 눈에 보이는 성장으로 남는다.</p>
+  </div>
+
+  <!-- ── 1. 홈 ── -->
+  <div class="group">
+    <div class="ghead">
+      <span class="gnum">1</span>
+      <div class="gtxt">
+        <h3>홈 <span class="badge star">⭐ 학습 루프의 결과가 보이는 곳</span></h3>
+        <p class="role">모은 별이 실제 변화로 바뀌는 것을 확인하는 탭. 앱을 열면 자동으로 출석이 처리됩니다.</p>
+        <p class="gflow"><code>C1 홈</code> → <code>C2 옷장</code></p>
+      </div>
+    </div>
+    <div class="row">
+
+      <!-- C1 -->
+      <figure>
+        <div class="phone">
+          <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+          <div class="appbar">홈 <span class="bk star">★ 128</span></div>
+          <div class="screen">
+            <div class="ghost" style="height:24px">오늘도 출석 완료! +1★ (자동)</div>
+            <div class="avatar-stage"><div class="body"></div>나를 닮은 캐릭터</div>
+            <div class="btn pri">옷장 열기</div>
+            <div class="sect-lbl">최근 획득</div>
+            <div class="li"><span class="ic"></span><span class="tx">퀴즈 3문제 정답<small>오늘</small></span><span class="amt star">+3★</span></div>
+            <div class="li"><span class="ic"></span><span class="tx">출석 보상<small>오늘</small></span><span class="amt star">+1★</span></div>
+          </div>
+          <div class="tabbar"><span class="on">홈</span><span>별모으기</span><span>내통장</span><span>미션</span></div>
+        </div>
+        <figcaption>
+          <span class="name"><span class="id">C1</span>홈 (나를 닮은 캐릭터)</span>
+          <p class="why">앱을 열자마자 “내 캐릭터가 자라 있다”를 보게 해, 학습의 결과가 남는다는 감각을 매 세션 각인합니다.</p>
+          <ul>
+            <li>랜딩 시 자동 출석 (+1★ 안내)</li>
+            <li>내 사진 기반 아바타 · 보유 별 상단 고정</li>
+            <li>최근 별 획득 내역</li>
+          </ul>
+          <p class="next">→ 옷장 열기 <b>C2</b> / 별이 들어오는 곳은 <b>C5 퀴즈</b>·출석</p>
+        </figcaption>
+      </figure>
+
+      <!-- C2 -->
+      <figure>
+        <div class="phone">
+          <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+          <div class="appbar"><span class="bk">← 홈</span>옷장 <span class="bk star">★ 128</span></div>
+          <div class="screen">
+            <div class="avatar-stage" style="height:110px"><div class="body" style="width:48px;height:66px"></div>미리보기</div>
+            <div class="sect-lbl">보유한 옷</div>
+            <div class="grid2">
+              <div class="cloth"><div class="thumb">👕</div>노란 티셔츠<small>착용 중</small></div>
+              <div class="cloth"><div class="thumb">🧢</div>모자<small>착용하기</small></div>
+            </div>
+            <div class="sect-lbl">잠금된 옷</div>
+            <div class="grid2">
+              <div class="cloth"><div class="thumb">🔒</div>우주복<small class="star">50★로 해제</small></div>
+              <div class="cloth"><div class="thumb">🔒</div>망토<small class="star">80★로 해제</small></div>
+            </div>
+          </div>
+          <div class="tabbar"><span class="on">홈</span><span>별모으기</span><span>내통장</span><span>미션</span></div>
+        </div>
+        <figcaption>
+          <span class="name"><span class="id">C2</span>옷장 <span class="sub">서브</span></span>
+          <p class="why">모은 별을 눈에 보이는 변화로 바꾸는 지점 — 성장 체감이 실제로 일어나는 핵심 화면입니다.</p>
+          <ul>
+            <li>착용 결과 미리보기</li>
+            <li>보유한 옷 (착용 / 착용 중)</li>
+            <li>잠금된 옷 (해제에 필요한 별 표시)</li>
+            <li>별은 현금 환산 불가 · 유료 아이템 없음</li>
+          </ul>
+          <p class="next">→ 별로 해제하면 즉시 착용, <b>C1</b> 캐릭터에 반영</p>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <!-- ── 2. 별모으기 ── -->
+  <div class="group">
+    <div class="ghead">
+      <span class="gnum">2</span>
+      <div class="gtxt">
+        <h3>별모으기 <span class="badge star">⭐ 학습 루프 본체</span></h3>
+        <p class="role">별을 얻는 유일한 경로. 퀴즈 앞에 반드시 학습 단계를 두어 “찍어서 보상만 받는” 흐름을 막습니다.</p>
+        <p class="gflow"><code>C3 커리큘럼</code> → <code>C4 학습</code> → <code>C5 퀴즈</code> <span>· 별도</span> <code>C6 출석</code></p>
+      </div>
+    </div>
+    <div class="row">
+
+      <!-- C3 -->
+      <figure>
+        <div class="phone">
+          <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+          <div class="appbar">별모으기 <span class="bk star">★ 128</span></div>
+          <div class="screen">
+            <div class="sect-lbl">주제를 골라봐!</div>
+            <div class="li"><span class="ic"></span><span class="tx">벌기<small>소득의 종류 · 용돈 · 미니창업 · 세금</small></span><span class="chip ok">3/10</span></div>
+            <div class="li"><span class="ic"></span><span class="tx">쓰기<small>필요 vs 원함 · 기회비용 · 예산</small></span><span class="chip ok">5/10</span></div>
+            <div class="li"><span class="ic"></span><span class="tx">모으기<small>목표저축 · 비상금</small></span><span class="chip">2/10</span></div>
+            <div class="li"><span class="ic"></span><span class="tx">불리기<small>이자율 · 예적금 · 투자 · 복리</small></span><span class="chip">0/10</span></div>
+            <div class="sect-lbl">출석</div>
+            <div class="li"><span class="ic"></span><span class="tx">이번 달 출석 21일<small>달력에서 확인하기</small></span><span class="chip">›</span></div>
+          </div>
+          <div class="tabbar"><span>홈</span><span class="on">별모으기</span><span>내통장</span><span>미션</span></div>
+        </div>
+        <figcaption>
+          <span class="name"><span class="id">C3</span>커리큘럼</span>
+          <p class="why">별을 얻는 길이 잡퀴즈가 아니라 정해진 금융 커리큘럼이라는 것을 아이도 알 수 있게 보여줍니다.</p>
+          <ul>
+            <li>4주제 — 벌기 · 쓰기 · 모으기 · 불리기</li>
+            <li>주제별 진도 칩 (예: 3/10)</li>
+            <li>이번 달 출석 요약 진입점</li>
+          </ul>
+          <p class="next">→ 주제 선택 <b>C4</b> / 출석 <b>C6</b></p>
+        </figcaption>
+      </figure>
+
+      <!-- C4 -->
+      <figure>
+        <div class="phone">
+          <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+          <div class="appbar"><span class="bk">← 쓰기</span>기회비용이란?</div>
+          <div class="screen">
+            <div class="box" style="min-height:88px"><div class="lbl">학습 텍스트</div>
+              무언가를 고르면, 고르지 않은 것의 가치를 포기하게 돼요. 그걸 기회비용이라고 해요…</div>
+            <div class="photo" style="height:78px">어려운 개념 만화 이미지</div>
+            <div class="ghost" style="height:56px">▶ 자세히 알아보기 (영상 콘텐츠)</div>
+            <div style="flex:1"></div>
+            <div class="btn pri">퀴즈 풀러 가기 ★</div>
+          </div>
+          <div class="tabbar"><span>홈</span><span class="on">별모으기</span><span>내통장</span><span>미션</span></div>
+        </div>
+        <figcaption>
+          <span class="name"><span class="id">C4</span>학습 <span class="sub">서브</span></span>
+          <p class="why">별을 받기 전에 개념을 먼저 이해하는 구간. 퀴즈로 바로 갈 수 없게 순서를 고정했습니다.</p>
+          <ul>
+            <li>텍스트 콘텐츠 (핵심 개념)</li>
+            <li>어려운 개념별 만화 이미지</li>
+            <li>자세히 알아보기 — 영상 콘텐츠</li>
+          </ul>
+          <p class="next">→ 하단 CTA “퀴즈 풀러 가기” <b>C5</b></p>
+        </figcaption>
+      </figure>
+
+      <!-- C5 -->
+      <figure>
+        <div class="phone">
+          <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+          <div class="appbar"><span class="bk">← 학습</span>퀴즈 1/3</div>
+          <div class="screen">
+            <div class="bar"><i style="width:33%"></i></div>
+            <div class="box" style="min-height:64px"><div class="lbl">Q1</div>
+              5,000원으로 게임을 사면, 못 사게 되는 간식의 가치를 뭐라고 할까?</div>
+            <div class="quiz-opt">① 용돈</div>
+            <div class="quiz-opt sel">② 기회비용 ✓</div>
+            <div class="quiz-opt">③ 저축</div>
+            <div class="box"><div class="lbl">해설</div>정답! 선택하지 않은 것의 가치가 기회비용이야.</div>
+            <div class="btn pri">다음 문제 (+1★)</div>
+          </div>
+          <div class="tabbar"><span>홈</span><span class="on">별모으기</span><span>내통장</span><span>미션</span></div>
+        </div>
+        <figcaption>
+          <span class="name"><span class="id">C5</span>퀴즈 <span class="sub">서브</span></span>
+          <p class="why">정답 여부보다 “해설을 읽었는가”가 남도록, 문항마다 해설을 붙이고 그 뒤에 별을 적립합니다.</p>
+          <ul>
+            <li>진행 바 (1/3 · 남은 문항 인지)</li>
+            <li>3지선다 · 즉시 정답 확인</li>
+            <li>해설 카드 → 다음 문제 (+1★)</li>
+          </ul>
+          <p class="next">→ 별 적립 <b>C1·C2</b> / 답안·정답률은 부모 <b>P2</b>로 동기화</p>
+        </figcaption>
+      </figure>
+
+      <!-- C6 -->
+      <figure>
+        <div class="phone">
+          <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+          <div class="appbar"><span class="bk">← 별모으기</span>출석 체크</div>
+          <div class="screen">
+            <div class="box"><div class="lbl">8월 출석</div><div class="val">21일 / 31일</div></div>
+            <div class="cal">
+              <b>일</b><b>월</b><b>화</b><b>수</b><b>목</b><b>금</b><b>토</b>
+              <s class="hit">1</s><s class="hit">2</s><s class="hit">3</s><s>4</s><s class="hit">5</s><s class="hit">6</s><s>7</s>
+              <s class="hit">8</s><s class="hit">9</s><s>10</s><s class="hit">11</s><s class="hit">12</s><s class="hit">13</s><s class="hit">14</s>
+              <s>15</s><s class="hit">16</s><s class="hit">17</s><s class="hit">18</s><s>19</s><s class="hit">20</s><s class="hit">21</s>
+              <s class="hit">22</s><s>23</s><s class="hit">24</s><s class="hit">25</s><s class="hit">26</s><s>27</s><s class="hit">28</s>
+            </div>
+            <div class="ghost" style="height:30px">◀ 이전 달 넘겨보기</div>
+          </div>
+          <div class="tabbar"><span>홈</span><span class="on">별모으기</span><span>내통장</span><span>미션</span></div>
+        </div>
+        <figcaption>
+          <span class="name"><span class="id">C6</span>출석 달력 <span class="sub">서브</span></span>
+          <p class="why">매일 온 기록을 색칠로 보여줘, 습관이 쌓이고 있다는 것을 아이 스스로 확인하게 합니다.</p>
+          <ul>
+            <li>이번 달 출석 일수 (21일 / 31일)</li>
+            <li>달력 형식 과거 내역 (색칠 = 출석일)</li>
+            <li>이전 달 넘겨보기</li>
+          </ul>
+          <p class="next">→ 기록은 <b>C1</b> 자동 출석에서 생성, 부모 <b>P2</b> 출석률로 집계</p>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <!-- ── 3. 내통장 ── -->
+  <div class="group">
+    <div class="ghead">
+      <span class="gnum">3</span>
+      <div class="gtxt">
+        <h3>내통장 <span class="badge pig">🐷 미션 루프의 결과</span></h3>
+        <p class="role">별이 아니라 <b>실제 돈</b>을 다루는 탭. 부모 P1과 같은 데이터를 아이 시점으로 보여줍니다.</p>
+        <p class="gflow"><code>C7 내통장</code> <span>· 같은 데이터의 부모 화면</span> <code>P1</code></p>
+      </div>
+    </div>
+    <div class="row">
+
+      <!-- C7 -->
+      <figure>
+        <div class="phone">
+          <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+          <div class="appbar">내통장 <span class="bk">🐷 저금통</span></div>
+          <div class="screen">
+            <div class="box"><div class="lbl">내 잔금</div><div class="val">32,500원</div></div>
+            <div class="sect-lbl">주간 퀘스트 달성률</div>
+            <div class="box"><div class="lbl">지출 퀘스트 70%</div><div class="bar"><i style="width:70%"></i></div>
+              <div class="lbl" style="margin-top:7px">저축 퀘스트 40%</div><div class="bar"><i style="width:40%"></i></div></div>
+            <div class="sect-lbl">이번 주 지출</div>
+            <div class="li"><span class="ic"></span><span class="tx">편의점 간식<small>8/3</small></span><span class="amt neg">-1,500</span></div>
+            <div class="ghost" style="height:26px">더보기 → 지출 상세 내역</div>
+            <div class="sect-lbl">이번 주 저축</div>
+            <div class="li"><span class="ic"></span><span class="tx">자전거 모으기<small>8/2</small></span><span class="amt won">+3,000</span></div>
+            <div class="ghost" style="height:26px">더보기 → 저축 상세 내역</div>
+          </div>
+          <div class="tabbar"><span>홈</span><span>별모으기</span><span class="on">내통장</span><span>미션</span></div>
+        </div>
+        <figcaption>
+          <span class="name"><span class="id">C7</span>내통장</span>
+          <p class="why">내 돈이 어디로 갔고 이번 주 목표까지 얼마나 왔는지를 아이 언어로 확인합니다.</p>
+          <ul>
+            <li>내 잔금 (저금통)</li>
+            <li>주간 퀘스트 달성률 (지출 / 저축)</li>
+            <li>이번 주 지출 · 저축 내역</li>
+          </ul>
+          <p class="next">→ 더보기: 상세 내역 / 미션 승인·용돈 입금이 잔금에 반영</p>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <!-- ── 4. 미션 ── -->
+  <div class="group">
+    <div class="ghead">
+      <span class="gnum">4</span>
+      <div class="gtxt">
+        <h3>미션 <span class="badge pig">🐷 미션 루프 · 아이 구간</span></h3>
+        <p class="role">부모가 등록한 미션을 수행하고 사진으로 증명해 제출하는 탭. 돈은 승인 이후에만 들어옵니다.</p>
+        <p class="gflow"><code>P5 부모 등록</code> → <code>C8 미션 선택</code> → <code>C9 인증 제출</code> → <code>P4 부모 승인</code></p>
+      </div>
+    </div>
+    <div class="row">
+
+      <!-- C8 -->
+      <figure>
+        <div class="phone">
+          <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+          <div class="appbar">미션 (돈 모으기)</div>
+          <div class="screen">
+            <div class="sect-lbl">도전할 수 있는 미션</div>
+            <div class="li"><span class="ic"></span><span class="tx">방 청소하기</span><span class="amt won">1,000원</span></div>
+            <div class="li"><span class="ic"></span><span class="tx">설거지 돕기</span><span class="chip ok">승인 대기</span></div>
+            <div class="li"><span class="ic"></span><span class="tx">책 30분 읽기</span><span class="amt won">700원</span></div>
+            <div class="sect-lbl">이번 주 모은 돈</div>
+            <div class="box"><div class="val">4,500원</div><div class="lbl">미션 3개 성공!</div></div>
+            <div class="ghost" style="height:30px">더보기 → 달력 뷰 (과거 미션 + 모은 돈)</div>
+          </div>
+          <div class="tabbar"><span>홈</span><span>별모으기</span><span>내통장</span><span class="on">미션</span></div>
+        </div>
+        <figcaption>
+          <span class="name"><span class="id">C8</span>미션 리스트</span>
+          <p class="why">오늘 할 수 있는 일과 그 대가를 나란히 보여줘, 돈이 노동의 결과로 들어온다는 감각을 만듭니다.</p>
+          <ul>
+            <li>미션 리스트 + 미션별 금액</li>
+            <li>제출한 미션의 승인 대기 상태</li>
+            <li>이번 주 모은 돈 (성공 건수)</li>
+          </ul>
+          <p class="next">→ 미션 선택 <b>C9</b> / 더보기: 달력 뷰 (과거 미션 + 모은 돈)</p>
+        </figcaption>
+      </figure>
+
+      <!-- C9 -->
+      <figure>
+        <div class="phone">
+          <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+          <div class="appbar"><span class="bk">← 미션</span>미션 성공하기</div>
+          <div class="screen">
+            <div class="box"><div class="lbl">미션</div><div class="val">방 청소하기 · 1,000원</div></div>
+            <div class="photo" style="flex:1">📷 성공 인증 사진 찍기</div>
+            <div class="ghost" style="height:30px">다시 찍기 / 갤러리에서 선택</div>
+            <div class="btn pri">성공! 부모님께 보내기</div>
+          </div>
+          <div class="tabbar"><span>홈</span><span>별모으기</span><span>내통장</span><span class="on">미션</span></div>
+        </div>
+        <figcaption>
+          <span class="name"><span class="id">C9</span>미션 인증 <span class="sub">서브</span></span>
+          <p class="why">“했다”고 말하는 대신 사진으로 증명해 제출 — 부모의 승인 근거가 되는 화면입니다.</p>
+          <ul>
+            <li>미션명 · 보상 금액 확인</li>
+            <li>성공 인증 사진 촬영</li>
+            <li>다시 찍기 / 갤러리에서 선택</li>
+          </ul>
+          <p class="next">→ 제출: 부모 <b>P4</b> 승인 대기로 전달 → 승인 시 <b>C7</b> 잔금 반영</p>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 부모 앱 ===================== -->
+<section class="app p-app">
+  <div class="app-head">
+    <span class="app-tag">👨‍👩‍👧 부모 앱</span>
+    <h2>4탭 + 서브 2화면</h2>
+    <p class="val">가치: <b>“아이의 금융 학습이 습관으로 자리잡고 있다는 확신감”</b> — 노는 것 같은데 학습이 계속된다.</p>
+  </div>
+
+  <!-- ── 1. 아이통장 ── -->
+  <div class="group">
+    <div class="ghead">
+      <span class="gnum">1</span>
+      <div class="gtxt">
+        <h3>아이통장 <span class="badge pig">🐷 돈이 보이는 홈</span></h3>
+        <p class="role">부모가 앱을 열면 가장 먼저 보는 화면. 아이 돈의 유입·유출을 한눈에 보고 바로 송금합니다.</p>
+        <p class="gflow"><code>P1 아이통장</code> <span>· 아이 쪽 같은 화면</span> <code>C7</code></p>
+      </div>
+    </div>
+    <div class="row">
+
+      <!-- P1 -->
+      <figure>
+        <div class="phone">
+          <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+          <div class="appbar">아이통장 <span class="bk">지우 ▾</span></div>
+          <div class="screen">
+            <div class="split">
+              <div class="box"><div class="lbl">아이 잔금</div><div class="val">32,500원</div></div>
+              <div class="btn pri" style="display:flex;align-items:center;justify-content:center">용돈<br>보내주기</div>
+            </div>
+            <div class="sect-lbl">주간 퀘스트 달성률</div>
+            <div class="box"><div class="lbl">지출 퀘스트 70%</div><div class="bar"><i style="width:70%"></i></div>
+              <div class="lbl" style="margin-top:7px">저축 퀘스트 40%</div><div class="bar"><i style="width:40%"></i></div></div>
+            <div class="sect-lbl">지출 내역</div>
+            <div class="li"><span class="ic"></span><span class="tx">편의점 간식<small>8/3 (일)</small></span><span class="amt neg">-1,500</span></div>
+            <div class="ghost" style="height:26px">더보기 → 지출 상세 내역</div>
+            <div class="sect-lbl">저축 내역</div>
+            <div class="li"><span class="ic"></span><span class="tx">목표저축: 자전거<small>8/2 (토)</small></span><span class="amt won">+3,000</span></div>
+            <div class="ghost" style="height:26px">더보기 → 저축 상세 내역</div>
+          </div>
+          <div class="tabbar"><span class="on">아이통장</span><span>학습현황</span><span>미션</span><span>마이</span></div>
+        </div>
+        <figcaption>
+          <span class="name"><span class="id">P1</span>아이통장 <span class="sub">부모 홈</span></span>
+          <p class="why">아이 돈이 어떻게 들어오고 나가는지 파악하고, 필요할 때 바로 용돈을 보냅니다.</p>
+          <ul>
+            <li>아이 잔금 + 용돈 보내주기</li>
+            <li>주간 퀘스트 달성률 (지출 / 저축)</li>
+            <li>지출 내역 · 저축 내역 요약</li>
+          </ul>
+          <p class="next">→ 더보기: 상세 내역 / <b>P4</b> 승인·용돈 송금 결과가 이 화면에 반영</p>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <!-- ── 2. 학습 현황 ── -->
+  <div class="group">
+    <div class="ghead">
+      <span class="gnum">2</span>
+      <div class="gtxt">
+        <h3>학습 현황 <span class="badge star">⭐ 학습 루프를 부모가 보는 창</span></h3>
+        <p class="role">아이가 별을 모으는 동안 실제로 무엇을 배웠는지를 나무 성장 UI와 답안으로 확인합니다.</p>
+        <p class="gflow"><code>C5 퀴즈 결과</code> → <code>P2 학습 현황</code></p>
+      </div>
+    </div>
+    <div class="row">
+
+      <!-- P2 -->
+      <figure>
+        <div class="phone">
+          <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+          <div class="appbar">아이 학습 현황</div>
+          <div class="screen">
+            <div class="tree-stage"><div class="tree"></div></div>
+            <div class="split">
+              <div class="box"><div class="lbl">진도</div><div class="val">12/40</div></div>
+              <div class="box"><div class="lbl">정답률</div><div class="val">85%</div></div>
+              <div class="box"><div class="lbl">출석률</div><div class="val">92%</div></div>
+            </div>
+            <div class="sect-lbl">최근 학습 · 아이 답안</div>
+            <div class="li"><span class="ic"></span><span class="tx">기회비용이란?<small>퀴즈 3문항</small></span><span class="chip ok">정답 3/3</span></div>
+            <div class="li"><span class="ic"></span><span class="tx">필요 vs 원함<small>퀴즈 3문항</small></span><span class="chip">정답 2/3</span></div>
+            <div class="ghost" style="height:34px">답안 상세 보기 (오답 해설 포함)</div>
+          </div>
+          <div class="tabbar"><span>아이통장</span><span class="on">학습현황</span><span>미션</span><span>마이</span></div>
+        </div>
+        <figcaption>
+          <span class="name"><span class="id">P2</span>아이 학습 현황</span>
+          <p class="why">“우리 아이 금융 학습이 습관이 되고 있다”는 확신을 나무가 자라는 시각화로 전달합니다.</p>
+          <ul>
+            <li>학습 성장 시각화 (나무 UI = 진도)</li>
+            <li>진도 · 정답률 · 출석률</li>
+            <li>학습 주제별 아이 답안 (정답 여부)</li>
+          </ul>
+          <p class="next">→ 답안 상세(오답 해설) / <b>C5</b> 퀴즈·<b>C6</b> 출석이 여기로 집계</p>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <!-- ── 3. 미션 관리 ── -->
+  <div class="group">
+    <div class="ghead">
+      <span class="gnum">3</span>
+      <div class="gtxt">
+        <h3>미션 관리 <span class="badge pig">🐷 미션 루프 · 부모 구간</span></h3>
+        <p class="role">용돈을 “그냥 주는 돈”이 아니라 수행의 대가로 설계하고, 인증 사진을 확인해 지급을 결정합니다.</p>
+        <p class="gflow"><code>P3 관리</code> → <code>P5 생성</code> <span>· 아이 제출 시</span> <code>P4 승인</code></p>
+      </div>
+    </div>
+    <div class="row">
+
+      <!-- P3 -->
+      <figure>
+        <div class="phone">
+          <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+          <div class="appbar">미션 관리</div>
+          <div class="screen">
+            <div class="btn pri">+ 미션 만들기</div>
+            <div class="sect-lbl">진행 중인 미션</div>
+            <div class="li"><span class="ic"></span><span class="tx">방 청소하기<small>1,000원</small></span><span class="chip">진행중</span></div>
+            <div class="li"><span class="ic"></span><span class="tx">설거지 돕기<small>500원</small></span><span class="chip ok">승인 대기</span></div>
+            <div class="ghost" style="height:26px">승인 대기 → P4 인증 확인</div>
+            <div class="sect-lbl">주간 미션 성공 금액</div>
+            <div class="box"><div class="lbl">이번 주</div><div class="val">4,500원</div>
+              <div class="lbl" style="margin-top:4px">성공 3건 · 거절 1건</div></div>
+          </div>
+          <div class="tabbar"><span>아이통장</span><span>학습현황</span><span class="on">미션</span><span>마이</span></div>
+        </div>
+        <figcaption>
+          <span class="name"><span class="id">P3</span>미션 관리</span>
+          <p class="why">등록한 미션의 상태를 한 화면에서 추적합니다. 승인 대기 건이 눈에 먼저 걸리도록 배치했습니다.</p>
+          <ul>
+            <li>+ 미션 만들기 (최상단 고정)</li>
+            <li>진행 중 / 승인 대기 미션 리스트</li>
+            <li>주간 미션 성공 금액 (성공 · 거절 건수)</li>
+          </ul>
+          <p class="next">→ 만들기 <b>P5</b> / 승인 대기 <b>P4</b></p>
+        </figcaption>
+      </figure>
+
+      <!-- P5 -->
+      <figure>
+        <div class="phone">
+          <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+          <div class="appbar"><span class="bk">← 미션</span>미션 만들기</div>
+          <div class="screen">
+            <div class="sect-lbl">미션 이름</div>
+            <div class="ghost" style="height:38px">직접 입력 or 추천 미션 선택</div>
+            <div class="split">
+              <div class="chip">방 청소</div><div class="chip">숙제 완료</div><div class="chip">심부름</div>
+            </div>
+            <div class="sect-lbl">보상 금액</div>
+            <div class="box"><div class="val">1,000원</div><div class="bar"><i style="width:35%"></i></div>
+              <div class="lbl" style="margin-top:4px">100원 ~ 10,000원 슬라이더</div></div>
+            <div class="sect-lbl">기한</div>
+            <div class="ghost" style="height:34px">날짜 선택 (선택사항)</div>
+            <div style="flex:1"></div>
+            <div class="btn pri">미션 등록</div>
+          </div>
+          <div class="tabbar"><span>아이통장</span><span>학습현황</span><span class="on">미션</span><span>마이</span></div>
+        </div>
+        <figcaption>
+          <span class="name"><span class="id">P5</span>미션 생성 <span class="sub">서브</span></span>
+          <p class="why">등록이 번거로우면 미션 자체가 안 만들어지므로, 이름 → 금액 → 기한 단일 폼으로 압축했습니다.</p>
+          <ul>
+            <li>미션 이름 (직접 입력 또는 추천 칩)</li>
+            <li>보상 금액 슬라이더 (100원~10,000원)</li>
+            <li>기한 설정 (선택 사항)</li>
+          </ul>
+          <p class="next">→ 등록: <b>P3</b> 리스트에 추가, 아이 <b>C8</b>에 즉시 노출</p>
+        </figcaption>
+      </figure>
+
+      <!-- P4 -->
+      <figure>
+        <div class="phone">
+          <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+          <div class="appbar"><span class="bk">← 미션</span>인증 확인</div>
+          <div class="screen">
+            <div class="box"><div class="lbl">미션</div><div class="val">설거지 돕기 · 500원</div></div>
+            <div class="photo">성공 인증 사진</div>
+            <div class="box"><div class="lbl">아이 메시지</div>다 했어요! 확인해 주세요 🙌</div>
+            <div style="flex:1"></div>
+            <div class="split">
+              <div class="btn line">거절</div>
+              <div class="btn pri">승인 (500원 지급)</div>
+            </div>
+          </div>
+          <div class="tabbar"><span>아이통장</span><span>학습현황</span><span class="on">미션</span><span>마이</span></div>
+        </div>
+        <figcaption>
+          <span class="name"><span class="id">P4</span>미션 승인 <span class="sub">서브</span></span>
+          <p class="why">아이가 올린 인증 사진을 확인하고 지급 여부를 결정하는, 미션 → 돈 흐름의 마지막 관문입니다.</p>
+          <ul>
+            <li>미션명 · 보상 금액</li>
+            <li>아이가 찍은 성공 인증 사진</li>
+            <li>아이 메시지 / 승인 · 거절</li>
+          </ul>
+          <p class="next">→ 승인 시 자동 지급 → <b>P1</b> 내역 · 아이 <b>C7</b> 잔금에 반영</p>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <!-- ── 4. 마이페이지 ── -->
+  <div class="group">
+    <div class="ghead">
+      <span class="gnum">4</span>
+      <div class="gtxt">
+        <h3>마이페이지</h3>
+        <p class="role">계정·계좌·가족 연결과 앱 설정. 자녀 추가 연동도 여기서 시작합니다.</p>
+        <p class="gflow"><code>P6 마이페이지</code> <span>· 가족 등록 → 자녀 초대(QR) 온보딩</span></p>
+      </div>
+    </div>
+    <div class="row">
+
+      <!-- P6 -->
+      <figure>
+        <div class="phone">
+          <div class="statusbar"><span>9:41</span><span>●●●</span></div>
+          <div class="appbar">마이페이지</div>
+          <div class="screen">
+            <div class="li"><span class="ic" style="border-radius:50%"></span><span class="tx">김보호자<small>프로필 · 회원정보 수정</small></span><span class="chip">›</span></div>
+            <div class="li"><span class="ic"></span><span class="tx">내 계좌<small>OO은행 1002-***-**** 연결됨</small></span><span class="chip">›</span></div>
+            <div class="sect-lbl">가족 구성원</div>
+            <div class="li"><span class="ic" style="border-radius:50%"></span><span class="tx">지우 (아이)<small>연결됨</small></span><span class="chip">삭제</span></div>
+            <div class="ghost" style="height:30px">+ 가족 등록</div>
+            <div class="sect-lbl">설정</div>
+            <div class="li"><span class="tx">알림 설정</span><span class="chip">›</span></div>
+            <div class="li"><span class="tx">인증 / 보안</span><span class="chip">›</span></div>
+            <div class="li"><span class="tx">약관 · 로그아웃</span><span class="chip">›</span></div>
+            <div class="li"><span class="tx">고객센터 (카드 분실·해지)</span><span class="chip">›</span></div>
+          </div>
+          <div class="tabbar"><span>아이통장</span><span>학습현황</span><span>미션</span><span class="on">마이</span></div>
+        </div>
+        <figcaption>
+          <span class="name"><span class="id">P6</span>마이페이지</span>
+          <p class="why">계정·계좌·가족 연결과 앱 설정을 한 곳에서 관리합니다.</p>
+          <ul>
+            <li>프로필 · 내 계좌 (연결된 통장)</li>
+            <li>가족 구성원 등록 / 삭제</li>
+            <li>설정 — 알림 · 인증/보안 · 약관 · 로그아웃</li>
+            <li>고객센터 — 카드 분실 · 해지</li>
+          </ul>
+          <p class="next">→ 가족 등록: 자녀 초대(QR) 플로우 <span style="color:var(--muted)">(온보딩 화면 별도)</span></p>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 마무리 ===================== -->
+<div class="closing">
+  <div>
+    <p class="rule">철칙: <span>별과 저금통은 절대 교차하지 않는다</span> — 사행성 원천 차단 · 현금 손실 0</p>
+    <p class="meta">아이는 성장을 보고, 부모는 학습을 본다.</p>
+  </div>
+  <p class="meta">핀프렌즈 · 아이 9화면 (C1–C9) · 부모 6화면 (P1–P6)</p>
+</div>
+
+</main>
+</body>
+</html>
